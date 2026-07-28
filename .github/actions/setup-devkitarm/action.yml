@@ -1,0 +1,30 @@
+name: 'Setup devkitARM'
+description: 'Installs the devkitPro devkitARM toolchain + gba-dev packages, cached across runs.'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cache devkitPro
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: /opt/devkitpro
+        key: devkitpro-gba-${{ runner.os }}-v1
+
+    - name: Install devkitPro
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        wget -q https://apt.devkitpro.org/install-devkitpro-pacman
+        chmod +x install-devkitpro-pacman
+        sudo ./install-devkitpro-pacman
+        sudo dkp-pacman -Syu --noconfirm
+        sudo dkp-pacman -S --noconfirm gba-dev
+
+    - name: Add devkitARM to PATH
+      shell: bash
+      run: |
+        echo "DEVKITPRO=/opt/devkitpro" >> "$GITHUB_ENV"
+        echo "DEVKITARM=/opt/devkitpro/devkitARM" >> "$GITHUB_ENV"
+        echo "/opt/devkitpro/devkitARM/bin" >> "$GITHUB_PATH"
+        echo "/opt/devkitpro/tools/bin" >> "$GITHUB_PATH"
