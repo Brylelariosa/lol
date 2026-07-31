@@ -1,0 +1,28 @@
+name: Release GBA ROM
+
+# Push a tag like "v1.0.0" to build and attach the .gba to a GitHub Release.
+# Releases don't expire (unlike Actions artifacts, which are pruned after
+# 90 days), so this is the better link to keep for downloading to your phone.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ROM
+        run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=$DEVKITPRO/devkitARM
+          export PATH=$DEVKITARM/bin:$DEVKITPRO/tools/bin:$PATH
+          make
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: platformer.gba
